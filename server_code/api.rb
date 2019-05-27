@@ -3,6 +3,7 @@
 require 'sinatra/base'
 require 'json'
 require 'sinatra/activerecord'
+require 'pry'
 
 EnrollSecret = "somesecret"
 
@@ -20,11 +21,20 @@ class FleetManager < Sinatra::Base
   end
 
   post '/enroll' do
-    puts '/enroll: ' + request.body.read
-    {
-      "node_key": "some-node-key",
-      "node_invalid": false
-    }.to_json
+    body = request.body.read
+    puts '/enroll: ' + body
+    parsed_body = JSON.parse(body)
+    if parsed_body["enroll_secret"] == EnrollSecret
+      {
+        "node_key": "some-node-key",
+        "node_invalid": false
+      }.to_json
+    else
+      {
+        "node_key": "",
+        "node_invalid": true
+      }.to_json
+    end
   end
 
   post '/configuration' do
@@ -35,5 +45,6 @@ end
 
 class Client < ActiveRecord::Base
   serialize :host_details
+  validates_presence_of :host_identifier
 
 end
