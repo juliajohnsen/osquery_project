@@ -10,11 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_05_27_184612) do
+ActiveRecord::Schema.define(version: 2019_05_28_001157) do
 
   create_table "clients", force: :cascade do |t|
     t.string "host_identifier"
     t.text "host_details"
+    t.string "node_key"
   end
 
 end
