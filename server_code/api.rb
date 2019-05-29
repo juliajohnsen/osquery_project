@@ -5,7 +5,7 @@ require 'sinatra/activerecord'
 require 'json'
 require_relative 'models/client'
 
-EnrollSecret = "somesecret"
+EnrollSecret = ENV['ENROLL_SECRET']
 
 class FleetManager < Sinatra::Base
   register Sinatra::ActiveRecordExtension
@@ -28,8 +28,8 @@ class FleetManager < Sinatra::Base
     def node_invalid_response
       status 400
       {
-        "node_key": "",
-        "node_invalid": true
+        'node_key': '',
+        'node_invalid': true
       }.to_json
     end
   end
@@ -44,8 +44,8 @@ class FleetManager < Sinatra::Base
       cli.node_key = generate_key
       if cli.save!
         {
-          "node_key": cli.node_key,
-          "node_invalid": false
+          'node_key': cli.node_key,
+          'node_invalid': false
         }.to_json
       else
         node_invalid_response
