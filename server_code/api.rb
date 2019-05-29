@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'sinatra/base'
-require 'json'
 require 'sinatra/activerecord'
-require 'pry'
+require 'json'
+require_relative 'models/client'
 
 EnrollSecret = "somesecret"
 
@@ -20,6 +20,20 @@ class FleetManager < Sinatra::Base
     content_type 'application/json'
   end
 
+  def generate_key
+    SecureRandom.hex(20)
+  end
+
+  helpers do
+    def node_invalid_response
+      status 400
+      {
+        "node_key": "",
+        "node_invalid": true
+      }.to_json
+    end
+  end
+
   post '/enroll' do
     body = request.body.read
     puts '/enroll: ' + body
@@ -27,19 +41,17 @@ class FleetManager < Sinatra::Base
     if parsed_body["enroll_secret"] == EnrollSecret
       cli = Client.where(host_identifier: parsed_body['host_identifier']).first_or_create
       cli.host_details = parsed_body['host_details']
-      cli.node_key = Client.generate_key
-      #  TODO: validation fails?
+      cli.node_key = generate_key
       if cli.save!
         {
           "node_key": cli.node_key,
           "node_invalid": false
         }.to_json
+      else
+        node_invalid_response
       end
     else
-      status 400
-      {
-        "node_invalid": true
-      }.to_json
+      node_invalid_response
     end
   end
 
@@ -51,19 +63,8 @@ class FleetManager < Sinatra::Base
     if cli
       File.read('config.json')
     else
-      {
-        "node_invalid": true
-      }.to_json
+      node_invalid_response
     end
   end
 end
 
-class Client < ActiveRecord::Base
-  serialize :host_details
-  validates_presence_of :host_identifier, :node_key
-
-  def self.generate_key
-    node_key = SecureRandom.hex(20)
-  end
-
-end
